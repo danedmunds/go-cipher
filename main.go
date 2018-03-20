@@ -36,6 +36,15 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name:    "rot13",
+			Aliases: []string{"r"},
+			Usage:   "Rot13 cipher the input",
+			Action: func(c *cli.Context) error {
+				doIt(Rot13())
+				return nil
+			},
+		},
 	}
 
 	err := app.Run(os.Args)
