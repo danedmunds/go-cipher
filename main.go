@@ -18,6 +18,7 @@ func main() {
 	app.Usage = "cipher text"
 
 	var shift int
+	var keyword string
 	app.Commands = []cli.Command{
 		{
 			Name:    "caesar",
@@ -42,6 +43,22 @@ func main() {
 			Usage:   "Rot13 cipher the input",
 			Action: func(c *cli.Context) error {
 				doIt(Rot13())
+				return nil
+			},
+		},
+		{
+			Name:    "keyword",
+			Aliases: []string{"k"},
+			Usage:   "Keyword cipher the input",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "keyword, k",
+					Usage:       "Cipher using `KEYWORD`",
+					Destination: &keyword,
+				},
+			},
+			Action: func(c *cli.Context) error {
+				doIt(Keyword(keyword))
 				return nil
 			},
 		},
