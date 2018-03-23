@@ -28,13 +28,7 @@ func Caesar(offset int) transform.Transformer {
 }
 
 func Rot13() transform.Transformer {
-	lookup := make(map[rune]rune)
-	for i := 0; i < 13; i++ {
-		lookup[alpha[i]] = alpha[i+13]
-		lookup[alpha[i+13]] = alpha[i]
-	}
-
-	return lookupMapper(lookup)
+	return Caesar(13)
 }
 
 func Keyword(keyword string) transform.Transformer {
