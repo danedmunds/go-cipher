@@ -19,6 +19,12 @@ func main() {
 
 	var shift int
 	var keyword string
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "decipher, d",
+			Usage: "Decipher the input",
+		},
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:    "caesar",
@@ -33,7 +39,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				doIt(Caesar(shift))
+				doIt(c, Caesar(shift))
 				return nil
 			},
 		},
@@ -42,7 +48,7 @@ func main() {
 			Aliases: []string{"r"},
 			Usage:   "Rot13 cipher the input",
 			Action: func(c *cli.Context) error {
-				doIt(Rot13())
+				doIt(c, Rot13())
 				return nil
 			},
 		},
@@ -58,7 +64,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				doIt(Keyword(keyword))
+				doIt(c, Keyword(keyword))
 				return nil
 			},
 		},
@@ -70,14 +76,20 @@ func main() {
 	}
 }
 
-func doIt(cypher transform.Transformer) {
+func doIt(ctx *cli.Context, cipher Cipher) {
+	var cipherTransform transform.Transformer
+	if ctx.GlobalBool("decipher") {
+		cipherTransform = cipher.Encipher()
+	} else {
+		cipherTransform = cipher.Decipher()
+	}
 	t := transform.Chain(
 		norm.NFKD,
 		runes.Remove(runes.In(unicode.Mark)),
 		runes.Map(func(r rune) rune {
 			return unicode.ToUpper(r)
 		}),
-		cypher,
+		cipherTransform,
 	)
 	reader := transform.NewReader(os.Stdin, t)
 
