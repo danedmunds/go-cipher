@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+	"fmt"
 	"log"
 	"os"
 	"unicode"
@@ -19,6 +19,7 @@ func main() {
 
 	var shift int
 	var keyword string
+	var rails int
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "decipher, d",
@@ -68,6 +69,23 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name:    "railfence",
+			Aliases: []string{"r"},
+			Usage:   "Rail Fence cipher the input",
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:        "rails, r",
+					Usage:       "Cipher using `RAILS` rails",
+					Destination: &rails,
+					Value:       3,
+				},
+			},
+			Action: func(c *cli.Context) error {
+				doIt(c, RailFence(rails))
+				return nil
+			},
+		},
 	}
 
 	err := app.Run(os.Args)
@@ -77,24 +95,25 @@ func main() {
 }
 
 func doIt(ctx *cli.Context, cipher Cipher) {
-	var cipherTransform transform.Transformer
+	var inOut InOutFunc
+	// TODO make sure about this, had it backwards before
 	if ctx.GlobalBool("decipher") {
-		cipherTransform = cipher.Encipher()
+		inOut = cipher.Decipher
 	} else {
-		cipherTransform = cipher.Decipher()
+		inOut = cipher.Encipher
 	}
+
 	t := transform.Chain(
 		norm.NFKD,
 		runes.Remove(runes.In(unicode.Mark)),
 		runes.Map(func(r rune) rune {
 			return unicode.ToUpper(r)
 		}),
-		cipherTransform,
 	)
-	reader := transform.NewReader(os.Stdin, t)
 
-	_, err := io.Copy(os.Stdout, reader)
+	err := inOut(transform.NewReader(os.Stdin, t), os.Stdout)
 	if err != nil {
+		fmt.Printf("%+v\n", err)
 		panic(err)
 	}
 }
